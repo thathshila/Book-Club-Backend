@@ -1,15 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import { BookModel } from "../models/Book";
 
-// View the catalog of books
 export const getAllBooks = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const books = await BookModel.find();
+        const books = await BookModel.find({ isDelete: false }); // ✅ filter non-deleted
         res.status(200).json(books);
     } catch (error) {
         next(error);
     }
 };
+
 export const addBook = async (req: Request, res: Response, next: NextFunction) => {
     try {
         console.log("req.body:", req.body);
@@ -53,14 +53,17 @@ export const updateBook = async (req: Request, res: Response, next: NextFunction
     }
 };
 
-// Delete a book from the collection
 export const deleteBook = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const deletedBook = await BookModel.findByIdAndDelete(req.params.id);
+        const deletedBook = await BookModel.findByIdAndUpdate(
+            req.params.id,
+            { isDelete: true },
+            { new: true }
+        );
         if (!deletedBook) {
             return res.status(404).json({ message: "Book not found" });
         }
-        res.status(204).send();
+        res.status(200).json({ message: "Book soft-deleted successfully", book: deletedBook });
     } catch (error) {
         next(error);
     }

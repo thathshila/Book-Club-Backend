@@ -9,6 +9,7 @@ export type Book = {
     description?: string;
     copiesAvailable: number;
     profileImage?: string;
+    isDelete: boolean;
 };
 
 const bookSchema = new mongoose.Schema<Book>({
@@ -23,6 +24,7 @@ const bookSchema = new mongoose.Schema<Book>({
         type: String,
         match: [/^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/, "Must be a valid image URL"],
     },
+    isDelete: { type: Boolean, default: false },
 }, { versionKey: false, timestamps: true });
 
 export const BookModel = mongoose.model("Book", bookSchema);
