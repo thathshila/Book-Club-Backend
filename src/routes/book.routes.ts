@@ -12,7 +12,7 @@ bookRouter.get("/", getAllBooks);
 bookRouter.post("/", verifyToken, authorizeRoles("admin", "librarian"), upload.single("profileImage"), addBook);
 
 // Edit book information (protected, only librarian/admin)
-bookRouter.put("/:id", verifyToken, authorizeRoles("admin", "librarian"), updateBook);
+bookRouter.put("/:id", verifyToken, authorizeRoles("admin", "librarian"),upload.single("profileImage"), updateBook);
 
 // Delete a book (protected, only librarian/admin)
 bookRouter.delete("/:id", verifyToken, authorizeRoles("admin", "librarian"), deleteBook);

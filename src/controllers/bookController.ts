@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { BookModel } from "../models/Book";
+import {ApiErrors} from "../errors/ApiErrors";
 
 export const getAllBooks = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -40,16 +41,45 @@ function generateISBN() {
 }
 
 
-// Edit book information
 export const updateBook = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const updatedBook = await BookModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!updatedBook) {
-            return res.status(404).json({ message: "Book not found" });
-        }
-        res.status(200).json(updatedBook);
-    } catch (error) {
-        next(error);
+        const bookId = req.params.id;
+        const {
+            title,
+            author,
+            publishedDate,
+            genre,
+            description,
+            copiesAvailable,
+        } = req.body;
+
+        const profileImage = req.file?.path;
+
+        // Ensure copiesAvailable is a number if sent
+        const copiesAvailableNumber = copiesAvailable !== undefined ? Number(copiesAvailable) : undefined;
+
+        const updatedBook = await BookModel.findOneAndUpdate(
+            { _id: bookId, isDelete: false }, // ✅ corrected field
+            {
+                ...(title && { title }),
+                ...(author && { author }),
+                ...(publishedDate && { publishedDate }),
+                ...(genre && { genre }),
+                ...(description && { description }),
+                ...(copiesAvailableNumber !== undefined && { copiesAvailable: copiesAvailableNumber }),
+                ...(profileImage && { profileImage }),
+            },
+            { new: true }
+        );
+
+        if (!updatedBook) throw new ApiErrors(404, "Book not found");
+
+        res.status(200).json({
+            message: "Book updated successfully",
+            book: updatedBook,
+        });
+    } catch (err) {
+        next(err);
     }
 };
 
