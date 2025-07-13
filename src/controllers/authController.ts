@@ -117,6 +117,7 @@ export const login = async (
             email: user.email,
             role: user.role,
             accessToken,
+            refreshToken,
         });
     } catch (err) {
         next(err);
@@ -172,6 +173,56 @@ export const getAllUsers = async (
     try {
         const users = await UserModel.find({ isActive: true }).select("-password");
         res.status(200).json(users);
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const logout = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            path: "/api/auth/refresh-token", // Same path used in login
+        });
+
+        res.status(200).json({ message: "Logout successful" });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const refreshToken = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const token = req.cookies.refreshToken;
+        if (!token) throw new ApiErrors(401, "Refresh token missing");
+
+        jwt.verify(
+            token,
+            process.env.REFRESH_TOKEN_SECRET!,
+            async (err: unknown, decoded: any) => {
+                if (err instanceof jwt.TokenExpiredError) {
+                    return next(new ApiErrors(403, "Refresh token expired"));
+                }
+                if (err) {
+                    return next(new ApiErrors(403, "Invalid refresh token"));
+                }
+
+                const user = await UserModel.findById(decoded.userId);
+                if (!user) throw new ApiErrors(404, "User not found");
+
+                const accessToken = createAccessToken(user);
+                return res.status(200).json({ accessToken });
+            }
+        );
+
     } catch (err) {
         next(err);
     }
