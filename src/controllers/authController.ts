@@ -20,8 +20,6 @@ const createRefreshToken = (user: any) => {
         { expiresIn: "7d" }
     );
 };
-
-// ✅ Sign Up
 export const signUp = async (
     req: Request,
     res: Response,
@@ -41,17 +39,27 @@ export const signUp = async (
 
         const profileImage = req.file?.path;
 
-        // Check for duplicate email
+        // ✅ Validate role
+        if (!["staff", "librarian", "reader"].includes(role)) {
+            throw new ApiErrors(400, "Invalid role. Must be one of: staff, librarian, or reader");
+        }
+
+        // ✅ Check for existing email
         const existingUser = await UserModel.findOne({ email });
         if (existingUser) throw new ApiErrors(400, "Email already registered");
 
-        // Hash password
-        const hashPassword = await bcrypt.hash(password, 10);
+        // ✅ Check for existing NIC
+        const existingNic = await UserModel.findOne({ nic });
+        if (existingNic) throw new ApiErrors(400, "NIC already registered");
 
+        // ✅ Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // ✅ Create and save new user
         const newUser = new UserModel({
             name,
             email,
-            password: hashPassword,
+            password: hashedPassword,
             role,
             phone,
             address,
@@ -80,7 +88,13 @@ export const signUp = async (
             message: "User registered successfully",
             user: userResponse,
         });
-    } catch (err) {
+
+    } catch (err: any) {
+        // ✅ Handle mongoose validation errors clearly
+        if (err.name === "ValidationError") {
+            const messages = Object.values(err.errors).map((val: any) => val.message);
+            return next(new ApiErrors(400, messages.join(", ")));
+        }
         next(err);
     }
 };
