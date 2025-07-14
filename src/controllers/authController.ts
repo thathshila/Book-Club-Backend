@@ -241,3 +241,77 @@ export const refreshToken = async (
         next(err);
     }
 };
+
+export const getAllReaders = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const readers = await UserModel.find({ role: "reader", isActive: true }).select("-password");
+        res.status(200).json(readers);
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+// ✅ Fixed: Updated to include 'admin' and 'staff' roles
+export const getAllStaff = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const staff = await UserModel.find({
+            role: { $in: ["admin", "staff", "librarian"] },
+            isActive: true
+        }).select("-password");
+        res.status(200).json(staff);
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.params.id;
+
+        const { name, phone, address, dateOfBirth } = req.body;
+        const profileImage = req.file?.path;
+
+        const updateData: any = {
+            ...(name && { name }),
+            ...(phone && { phone }),
+            ...(address && { address }),
+            ...(dateOfBirth && { dateOfBirth }),
+            ...(profileImage && { profileImage }),
+        };
+
+        const updatedUser = await UserModel.findByIdAndUpdate(userId, updateData, { new: true }).select("-password");
+
+        if (!updatedUser) throw new ApiErrors(404, "User not found");
+
+        res.status(200).json({
+            message: "User updated successfully",
+            user: updatedUser,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// ✅ Fixed: Updated role validation to include 'admin' and 'staff'
+export const updateUserRole = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.params.id;
+        const { role } = req.body;
+
+        if (!["admin", "staff", "librarian", "reader"].includes(role)) {
+            throw new ApiErrors(400, "Invalid role. Must be one of: admin, staff, librarian, or reader");
+        }
+
+        const updated = await UserModel.findByIdAndUpdate(userId, { role }, { new: true }).select("-password");
+
+        if (!updated) throw new ApiErrors(404, "User not found");
+
+        res.status(200).json({
+            message: "User role updated successfully",
+            user: updated,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
