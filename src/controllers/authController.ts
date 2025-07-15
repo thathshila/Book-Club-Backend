@@ -20,6 +20,9 @@ const createRefreshToken = (user: any) => {
         { expiresIn: "7d" }
     );
 };
+
+
+
 export const signUp = async (
     req: Request,
     res: Response,
@@ -98,6 +101,7 @@ export const signUp = async (
         next(err);
     }
 };
+
 
 export const login = async (
     req: Request,

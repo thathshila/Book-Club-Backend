@@ -45,7 +45,6 @@ const userSchema = new mongoose.Schema<User>(
         role: {
             type: String,
             enum: ["staff", "librarian", "reader"],
-            default: "reader",
         },
         phone: {
             type: String,

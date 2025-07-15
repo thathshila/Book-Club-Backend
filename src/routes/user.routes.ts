@@ -1,5 +1,6 @@
 import {Router} from "express";
-import {upload} from "../middlewares/upload";
+
+
 import {
     deleteUser,
     getAllReaders, getAllStaff,
@@ -11,6 +12,8 @@ import {
 } from "../controllers/authController";
 import {authorizeRoles, verifyToken} from "../middlewares/verifyAccessToken";
 import {authenticateToken} from "../middlewares/authenticateToken";
+import multer from "multer";
+import {upload} from "../middlewares/upload";
 const userRouter =  Router();
 
 userRouter.post("/signup", upload.single("profileImage"), signUp);
