@@ -1,14 +1,11 @@
 import mongoose from "mongoose";
 
-export type User = {
+export type Reader = {
     name: string;
     email: string;
-    password: string;
-    role: "staff" | "librarian";
     phone?: string;
     address?: string;
     dateOfBirth?: Date;
-    profileImage?: string;
     isActive?: boolean;
     createdAt?: Date;
     memberId?: string | null;
@@ -21,7 +18,7 @@ const generateMemberId = (prefix: string): string => {
     return `${prefix}-${year}-${randomDigits}`;
 };
 
-const userSchema = new mongoose.Schema<User>(
+const readerSchema = new mongoose.Schema<Reader>(
     {
         name: {
             type: String,
@@ -37,15 +34,6 @@ const userSchema = new mongoose.Schema<User>(
             lowercase: true,
             match: [/\S+@\S+\.\S+/, "Email must be valid"],
         },
-        password: {
-            type: String,
-            required: [true, "Password is required"],
-            minlength: [6, "Password must be at least 6 characters"],
-        },
-        role: {
-            type: String,
-            enum: ["staff", "librarian"],
-        },
         phone: {
             type: String,
             trim: true,
@@ -56,10 +44,6 @@ const userSchema = new mongoose.Schema<User>(
         },
         dateOfBirth: {
             type: Date,
-        },
-        profileImage: {
-            type: String,
-            match: [/^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/, "Must be a valid image URL"],
         },
         isActive: {
             type: Boolean,
@@ -87,16 +71,13 @@ const userSchema = new mongoose.Schema<User>(
     }
 );
 
-userSchema.pre("save", async function (next) {
+// Auto-generate memberId before saving
+readerSchema.pre("save", async function (next) {
     if (!this.memberId) {
-        let prefix = "";
-        if (this.role === "librarian") prefix = "Librarian";
-        else if (this.role === "staff") prefix = "Staff";
-        else prefix = "U";
-
+        const prefix = "Reader";
         let newMemberId = generateMemberId(prefix);
 
-        while (await mongoose.models.User.findOne({ memberId: newMemberId })) {
+        while (await mongoose.models.Reader.findOne({ memberId: newMemberId })) {
             newMemberId = generateMemberId(prefix);
         }
 
@@ -105,5 +86,4 @@ userSchema.pre("save", async function (next) {
     next();
 });
 
-
-export const UserModel = mongoose.model("User", userSchema);
+export const ReaderModel = mongoose.model("Reader", readerSchema);
