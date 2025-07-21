@@ -303,7 +303,7 @@ export const updateUserRole = async (req: Request, res: Response, next: NextFunc
         const userId = req.params.id;
         const { role } = req.body;
 
-        if (!["admin", "staff", "librarian", "reader"].includes(role)) {
+        if (!["staff", "librarian", "reader"].includes(role)) {
             throw new ApiErrors(400, "Invalid role. Must be one of: admin, staff, librarian, or reader");
         }
 
