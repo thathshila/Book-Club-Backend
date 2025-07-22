@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addBook, deleteBook, getAllBooks, updateBook } from "../controllers/bookController";
+import {addBook, deleteBook, getAllBooks, getAllBooksFilter, updateBook} from "../controllers/bookController";
 import { verifyToken, authorizeRoles } from "../middlewares/verifyAccessToken";
 import {upload} from "../middlewares/upload";
 
@@ -9,12 +9,13 @@ const bookRouter = Router();
 bookRouter.get("/", getAllBooks);
 
 // Add a new book (protected, only librarian/admin)
-bookRouter.post("/", verifyToken, authorizeRoles("admin", "librarian"), upload.single("profileImage"), addBook);
+bookRouter.post("/", verifyToken, authorizeRoles("staff", "librarian"), upload.single("profileImage"), addBook);
 
 // Edit book information (protected, only librarian/admin)
-bookRouter.put("/:id", verifyToken, authorizeRoles("admin", "librarian"),upload.single("profileImage"), updateBook);
+bookRouter.put("/:id", verifyToken, authorizeRoles("staff", "librarian"),upload.single("profileImage"), updateBook);
 
 // Delete a book (protected, only librarian/admin)
-bookRouter.delete("/:id", verifyToken, authorizeRoles("admin", "librarian"), deleteBook);
+bookRouter.delete("/:id", verifyToken, authorizeRoles("staff", "librarian"), deleteBook);
 
+bookRouter.get("/filter",verifyToken,authorizeRoles("staff", "librarian"),getAllBooksFilter)
 export default bookRouter;

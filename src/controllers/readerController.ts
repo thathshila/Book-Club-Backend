@@ -101,3 +101,21 @@ export const deleteReader = async (req: Request, res: Response, next: NextFuncti
         next(err);
     }
 };
+
+export const getAllReadersFilter = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { name, email, nic, phone } = req.query;
+
+        const filter: any = { isActive: true };
+
+        if (name) filter.name = { $regex: name, $options: "i" };
+        if (email) filter.email = { $regex: email, $options: "i" };
+        if (nic) filter.nic = { $regex: nic, $options: "i" };
+        if (phone) filter.phone = { $regex: phone, $options: "i" };
+
+        const readers = await ReaderModel.find(filter);
+        res.status(200).json(readers);
+    } catch (err) {
+        next(err);
+    }
+};

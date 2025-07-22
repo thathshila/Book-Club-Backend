@@ -3,14 +3,15 @@ import {
     getAllReaders,
     addReader,
     updateReader,
-    deleteReader,
+    deleteReader, getAllReadersFilter,
 } from "../controllers/readerController";
 
-const router = express.Router();
+const readerRouter = express.Router();
 
-router.get("/", getAllReaders);
-router.post("/", addReader);
-router.put("/:id", updateReader);
-router.delete("/:id", deleteReader);
+readerRouter.get("/", getAllReaders);
+readerRouter.post("/", addReader);
+readerRouter.put("/:id", updateReader);
+readerRouter.delete("/:id", deleteReader);
+readerRouter.get("/filter", getAllReadersFilter);
 
-export default router;
+export default readerRouter;

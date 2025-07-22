@@ -98,3 +98,22 @@ export const deleteBook = async (req: Request, res: Response, next: NextFunction
         next(error);
     }
 };
+
+export const getAllBooksFilter = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { title, author, genre, isbn } = req.query;
+
+        const filter: any = { isDelete: false };
+
+        if (title) filter.title = { $regex: title, $options: "i" };
+        if (author) filter.author = { $regex: author, $options: "i" };
+        if (genre) filter.genre = { $regex: genre, $options: "i" };
+        if (isbn) filter.isbn = { $regex: isbn, $options: "i" };
+
+        const books = await BookModel.find(filter);
+
+        res.status(200).json(books);
+    } catch (error) {
+        next(error);
+    }
+};
