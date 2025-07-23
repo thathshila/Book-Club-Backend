@@ -15,7 +15,13 @@
 //
 // export default lendingRouter;
 import { Router } from "express";
-import { lendBook, getLendingHistory, returnBook, getOverdueLendings } from "../controllers/lendingController";
+import {
+    lendBook,
+    getLendingHistory,
+    returnBook,
+    getOverdueLendings,
+    calculateOverduePayments
+} from "../controllers/lendingController";
 import { verifyToken, authorizeRoles } from "../middlewares/verifyAccessToken";
 
 const lendingRouter = Router();
@@ -26,5 +32,5 @@ lendingRouter.put("/:id/return", verifyToken, authorizeRoles("staff", "librarian
 
 // Overdue management endpoint
 lendingRouter.get("/overdue", verifyToken, authorizeRoles("staff", "librarian"), getOverdueLendings);
-
+lendingRouter.get("/overdue-payments", calculateOverduePayments);
 export default lendingRouter;

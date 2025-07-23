@@ -15,9 +15,7 @@ export const lendBook = async (req: Request, res: Response, next: NextFunction) 
             throw new ApiErrors(400, "memberId and isbn are required");
         }
 
-// If dueDate is not provided, auto-calculate today + 14 days
         const calculatedDueDate = dueDate ? new Date(dueDate) : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
-
 
         const reader = await ReaderModel.findOne({ memberId });
         if (!reader) throw new ApiErrors(404, "Reader not found");
@@ -111,6 +109,43 @@ export const getOverdueLendings = async (req: Request, res: Response, next: Next
             .populate("reader", "name email");
 
         res.status(200).json(overdueLendings);
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Calculate overdue payments for all overdue books
+export const calculateOverduePayments = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        await updateOverdueStatuses(); // Ensure overdue statuses are up to date
+
+        const overdueLendings = await LendingModel.find({ status: "overdue" })
+            .populate("book", "title author isbn")
+            .populate("reader", "name email");
+
+        const results = overdueLendings.map(lending => {
+            const today = new Date();
+            const dueDate = new Date(lending.dueDate);
+            const daysOverdue = Math.max(
+                Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)),
+                0
+            );
+
+            const finePerDay = 10; // Adjust fine per day as needed
+            const totalFine = daysOverdue * finePerDay;
+
+            return {
+                lendingId: lending._id,
+                book: lending.book,
+                reader: lending.reader,
+                dueDate: lending.dueDate,
+                daysOverdue,
+                finePerDay,
+                totalFine,
+            };
+        });
+
+        res.status(200).json(results);
     } catch (err) {
         next(err);
     }
