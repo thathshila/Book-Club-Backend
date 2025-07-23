@@ -11,9 +11,13 @@ export const lendBook = async (req: Request, res: Response, next: NextFunction) 
     try {
         const { memberId, isbn, dueDate } = req.body;
 
-        if (!memberId || !isbn || !dueDate) {
-            throw new ApiErrors(400, "memberId, isbn, and dueDate are required");
+        if (!memberId || !isbn) {
+            throw new ApiErrors(400, "memberId and isbn are required");
         }
+
+// If dueDate is not provided, auto-calculate today + 14 days
+        const calculatedDueDate = dueDate ? new Date(dueDate) : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
 
         const reader = await ReaderModel.findOne({ memberId });
         if (!reader) throw new ApiErrors(404, "Reader not found");
@@ -28,8 +32,9 @@ export const lendBook = async (req: Request, res: Response, next: NextFunction) 
         const lending = new LendingModel({
             book: book._id,
             reader: reader._id,
-            dueDate,
+            dueDate: calculatedDueDate,
         });
+
 
         await lending.save();
 
