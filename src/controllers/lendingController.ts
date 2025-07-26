@@ -5,8 +5,62 @@ import { BookModel } from "../models/Book";
 import { ApiErrors } from "../errors/ApiErrors";
 import { updateOverdueStatuses } from "../utils/updateOverdueStatus";
 import {ReaderModel} from "../models/Reader";
+import jwt from "jsonwebtoken";
 
 // Lend a book using memberId and ISBN
+// export const lendBook = async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const { memberId, isbn, dueDate } = req.body;
+//
+//         if (!memberId || !isbn) {
+//             throw new ApiErrors(400, "memberId and isbn are required");
+//         }
+//
+//         const calculatedDueDate = dueDate ? new Date(dueDate) : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+//
+//         const reader = await ReaderModel.findOne({ memberId });
+//         if (!reader) throw new ApiErrors(404, "Reader not found");
+//
+//         const book = await BookModel.findOne({ isbn });
+//         if (!book) throw new ApiErrors(404, "Book not found");
+//
+//         if (book.copiesAvailable < 1) {
+//             throw new ApiErrors(400, "No copies available for lending");
+//         }
+//
+//         const lending = new LendingModel({
+//             book: book._id,
+//             reader: reader._id,
+//             dueDate: calculatedDueDate,
+//         });
+//
+//
+//         await lending.save();
+//
+//         book.copiesAvailable -= 1;
+//         await book.save();
+//
+//         res.status(201).json({
+//             message: "Book lent successfully",
+//             lending,
+//         });
+//     } catch (err) {
+//         next(err);
+//     }
+// };
+
+    const getUserFromToken = (req: Request) => {
+        const authHeader = req.headers["authorization"];
+        const token = authHeader && authHeader.split(" ")[1];
+        if (!token) throw new ApiErrors(401, "Unauthorized: No token");
+        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET as string) as any;
+        return { userId: decoded.userId, role: decoded.role, name: decoded.name };
+};
+
+/**
+ * 📌 Lend a book using memberId and ISBN
+ * POST /api/lendings
+ */
 export const lendBook = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { memberId, isbn, dueDate } = req.body;
@@ -15,7 +69,10 @@ export const lendBook = async (req: Request, res: Response, next: NextFunction) 
             throw new ApiErrors(400, "memberId and isbn are required");
         }
 
-        const calculatedDueDate = dueDate ? new Date(dueDate) : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+        const { name } = getUserFromToken(req);
+        const calculatedDueDate = dueDate
+            ? new Date(dueDate)
+            : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // default 14 days
 
         const reader = await ReaderModel.findOne({ memberId });
         if (!reader) throw new ApiErrors(404, "Reader not found");
@@ -23,7 +80,7 @@ export const lendBook = async (req: Request, res: Response, next: NextFunction) 
         const book = await BookModel.findOne({ isbn });
         if (!book) throw new ApiErrors(404, "Book not found");
 
-        if (book.copiesAvailable < 1) {
+        if (book.copiesAvailable <= 0) {
             throw new ApiErrors(400, "No copies available for lending");
         }
 
@@ -31,12 +88,12 @@ export const lendBook = async (req: Request, res: Response, next: NextFunction) 
             book: book._id,
             reader: reader._id,
             dueDate: calculatedDueDate,
+            createdBy: name,
         });
-
 
         await lending.save();
 
-        book.copiesAvailable -= 1;
+        book.copiesAvailable = Math.max(book.copiesAvailable - 1, 0);
         await book.save();
 
         res.status(201).json({

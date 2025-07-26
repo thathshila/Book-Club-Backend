@@ -246,21 +246,21 @@ export const refreshToken = async (
     }
 };
 
-export const getAllReaders = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const readers = await UserModel.find({ role: "reader", isActive: true }).select("-password");
-        res.status(200).json(readers);
-    } catch (err) {
-        next(err);
-    }
-};
+// export const getAllReaders = async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const readers = await UserModel.find({ role: "reader", isActive: true }).select("-password");
+//         res.status(200).json(readers);
+//     } catch (err) {
+//         next(err);
+//     }
+// };
 
 
 // ✅ Fixed: Updated to include 'admin' and 'staff' roles
 export const getAllStaff = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const staff = await UserModel.find({
-            role: { $in: ["admin", "staff", "librarian"] },
+            role: { $in: ["staff", "librarian"] },
             isActive: true
         }).select("-password");
         res.status(200).json(staff);

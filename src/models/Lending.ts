@@ -33,6 +33,11 @@ export interface Lending extends Document {
     returnDate?: Date;
     status: "borrowed" | "returned" | "overdue";
     finePerDay: Number
+    createdBy?: string;
+    updatedBy?: string;
+    updatedAt?: Date;
+    deletedBy?: string;
+    deletedAt?: Date;
 
 }
 
@@ -45,6 +50,22 @@ const lendingSchema = new Schema<Lending>(
         returnDate: { type: Date },
         status: { type: String, enum: ["borrowed", "returned", "overdue"], default: "borrowed" },
         finePerDay: { type: Number, default: 10 },
+        createdBy: {
+            type: String,
+            required: true,
+        },
+        updatedBy: {
+            type: String,
+        },
+        updatedAt: {
+            type: Date,
+        },
+        deletedBy: {
+            type: String,
+        },
+        deletedAt: {
+            type: Date,
+        },
     },
     { timestamps: true, versionKey: false }
 );
