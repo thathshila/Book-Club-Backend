@@ -1,10 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { LendingModel } from "../models/Lending";
-import { ReaderModel } from "../models/Reader";
-import { BookModel } from "../models/Book";
 import nodemailer from "nodemailer";
-import { ApiErrors } from "../errors/ApiErrors";
 import { updateOverdueStatuses } from "../utils/updateOverdueStatus";
+
 
 // Send overdue notifications to readers
 export const sendOverdueNotifications = async (req: Request, res: Response, next: NextFunction) => {
@@ -75,4 +73,26 @@ export const sendOverdueNotifications = async (req: Request, res: Response, next
     } catch (err) {
         next(err);
     }
+};
+// 🔧 Define transporter here since you're not using a shared utility
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
+
+// ✅ Welcome email function added directly here
+export const sendWelcomeEmail = async (to: string, name: string) => {
+    const mailOptions = {
+        from: `"Book Club" <${process.env.EMAIL_USER}>`, // Fixed template literal
+        to,
+        subject: "Welcome to the Book Club 📚",
+        html: `<p>Dear ${name},</p>
+               <p>Welcome to our Book Club! We're excited to have you as a member.</p>
+               <p>Happy reading!<br/>– The Book Club Team</p>`,
+    };
+
+    await transporter.sendMail(mailOptions);
 };

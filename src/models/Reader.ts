@@ -10,6 +10,11 @@ export type Reader = {
     createdAt?: Date;
     memberId?: string | null;
     nic?: string;
+    createdBy?: string;
+    updatedBy?: string;
+    updatedAt?: Date;
+    deletedBy?: string;
+    deletedAt?: Date;
 };
 
 const generateMemberId = (prefix: string): string => {
@@ -64,6 +69,22 @@ const readerSchema = new mongoose.Schema<Reader>(
             trim: true,
             unique: true,
             match: [/^\d{9}[vVxX]$|^\d{12}$/, "NIC must be valid (e.g., 991234567V or 200012345678)"],
+        },
+        createdBy: {
+            type: String,
+            required: true,
+        },
+        updatedBy: {
+            type: String,
+        },
+        updatedAt: {
+            type: Date,
+        },
+        deletedBy: {
+            type: String,
+        },
+        deletedAt: {
+            type: Date,
         },
     },
     {

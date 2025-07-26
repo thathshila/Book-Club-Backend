@@ -7,7 +7,7 @@ import { UserModel } from "../models/User";
 
 const createAccessToken = (user: any) => {
     return jwt.sign(
-        { userId: user._id, role: user.role },
+        { userId: user._id, role: user.role, name: user.name },
         process.env.ACCESS_TOKEN_SECRET!,
         { expiresIn: "15m" }
     );
