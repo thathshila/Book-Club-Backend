@@ -2,13 +2,13 @@ import {Router} from "express";
 
 
 import {
-    deleteUser,
+    deleteUser, forgotPassword,
     getAllStaff,
     getAllUsers,
     getLoggedInUser,
     login,
-    logout,
-    signUp, updateUser, updateUserRole
+    logout, resetPassword,
+    signUp, updateUser, updateUserRole, verifyOtp
 } from "../controllers/authController";
 import {authorizeRoles, verifyToken} from "../middlewares/verifyAccessToken";
 import {authenticateToken} from "../middlewares/authenticateToken";
@@ -28,4 +28,7 @@ userRouter.delete("/:id", authenticateToken, authorizeRoles("librarian"),deleteU
 userRouter.get("/staff", authenticateToken, authorizeRoles("librarian"), getAllStaff);
 userRouter.put("/update/:id", authenticateToken,upload.single("profileImage"),authorizeRoles("librarian"), updateUser);
 userRouter.put("/role/:id", authenticateToken, authorizeRoles("librarian"), updateUserRole);
+userRouter.post("/forgot-password", forgotPassword);
+userRouter.post("/verify-otp", verifyOtp);
+userRouter.post("/reset-password", resetPassword);
 export default userRouter;

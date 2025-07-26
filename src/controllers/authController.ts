@@ -3,6 +3,8 @@ import bcrypt from "bcrypt";
 import jwt, { TokenExpiredError } from "jsonwebtoken";
 import { ApiErrors } from "../errors/ApiErrors";
 import { UserModel } from "../models/User";
+import {sendOtpEmail} from "./notificationController";
+import {OtpModel} from "../models/OTP";
 
 
 const createAccessToken = (user: any) => {
@@ -318,4 +320,58 @@ export const updateUserRole = async (req: Request, res: Response, next: NextFunc
     } catch (err) {
         next(err);
     }
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+    const { email } = req.body;
+    const user = await UserModel.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    await OtpModel.findOneAndUpdate(
+        { email },
+        { otp, createdAt: new Date(), expiresAt },
+        { upsert: true, new: true }
+    );
+
+    await sendOtpEmail(email, otp);
+    res.status(200).json({ message: "OTP sent to email" });
+};
+
+
+ export const verifyOtp = async (req: Request, res: Response) => {
+if (!req.body || !req.body.email || !req.body.otp) {
+    return res.status(400).json({
+        message: "Email and OTP are required",
+        received: req.body
+    });
+}
+    const { email, otp } = req.body;
+    const record = await OtpModel.findOne({ email });
+
+    if (!record) return res.status(400).json({ message: "OTP not found" });
+    if (record.otp !== otp) return res.status(400).json({ message: "Invalid OTP" });
+    if (record.expiresAt < new Date()) return res.status(400).json({ message: "OTP expired" });
+
+    res.status(200).json({ message: "OTP verified successfully" });
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+    const { email, otp, newPassword } = req.body;
+    const record = await OtpModel.findOne({ email });
+
+    if (!record || record.otp !== otp) {
+        return res.status(400).json({ message: "Invalid OTP" });
+    }
+    if (record.expiresAt < new Date()) {
+        return res.status(400).json({ message: "OTP expired" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await UserModel.findOneAndUpdate({ email }, { password: hashedPassword });
+    await OtpModel.deleteOne({ email }); // Clean up OTP
+
+    res.status(200).json({ message: "Password reset successful" });
 };
