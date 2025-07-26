@@ -38,7 +38,6 @@ export interface Lending extends Document {
     updatedAt?: Date;
     deletedBy?: string;
     deletedAt?: Date;
-
 }
 
 const lendingSchema = new Schema<Lending>(
