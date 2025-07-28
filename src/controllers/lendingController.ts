@@ -275,7 +275,8 @@ export const getLendingHistory = async (req: Request, res: Response, next: NextF
 };
 export const returnBook = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { lendingId, name } = req.body;
+        const { id: lendingId } = req.params; // ✅ from URL params
+        const { name } = getUserFromToken(req); // ✅ from JWT
 
         const lending = await LendingModel.findById(lendingId)
             .populate("book")
