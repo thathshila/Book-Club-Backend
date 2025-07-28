@@ -92,7 +92,7 @@ const readerSchema = new mongoose.Schema<Reader>(
     }
 );
 
-// Auto-generate memberId before saving
+
 readerSchema.pre("save", async function (next) {
     if (!this.memberId) {
         const prefix = "Reader";

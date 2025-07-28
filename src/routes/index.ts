@@ -5,6 +5,7 @@ import lendingRouter from "./lending.routes";
 import readerRouter from "./reader.routes";
 import notificationRouter from "./notification.routes";
 import auditRouter from "./audit.routes";
+import dashboardRouter from "./dashboard.routes";
 
 
 const rootRouter = Router();
@@ -15,4 +16,5 @@ rootRouter.use("/lendings", lendingRouter)
 rootRouter.use("/reader", readerRouter)
 rootRouter.use("/notifications", notificationRouter)
 rootRouter.use("/audit", auditRouter)
+rootRouter.use("/dashboard", dashboardRouter)
 export default rootRouter;

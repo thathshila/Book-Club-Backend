@@ -6,11 +6,11 @@ const auditLogSchema = new mongoose.Schema({
         enum: ["CREATE", "UPDATE", "DELETE", "LEND", "RETURN", "LOGIN", "OTHER"],
         required: true,
     },
-    performedBy: { type: String, required: true }, // Name or user ID
-    entityType: { type: String, required: true }, // e.g., 'Reader', 'Book'
-    entityId: { type: String, required: true }, // ObjectId of the affected document
+    performedBy: { type: String, required: true },
+    entityType: { type: String, required: true },
+    entityId: { type: String, required: true },
     timestamp: { type: Date, default: Date.now },
-    details: { type: String }, // Optional description or message
+    details: { type: String },
 });
 
 export const AuditLogModel = mongoose.model("AuditLog", auditLogSchema);

@@ -3,13 +3,10 @@ import { LendingModel } from "../models/Lending";
 import nodemailer from "nodemailer";
 import { updateOverdueStatuses } from "../utils/updateOverdueStatus";
 
-
-// Send overdue notifications to readers
 export const sendOverdueNotifications = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        await updateOverdueStatuses(); // Ensure statuses are updated before sending
+        await updateOverdueStatuses();
 
-        // Fetch all overdue lendings with reader and book populated
         const overdueLendings = await LendingModel.find({ status: "overdue" })
             .populate("book", "title dueDate")
             .populate("reader", "email name");
@@ -18,7 +15,6 @@ export const sendOverdueNotifications = async (req: Request, res: Response, next
             return res.status(200).json({ message: "No overdue lendings found." });
         }
 
-        // Group lendings by reader
         const readerMap: Record<string, { email: string; name: string; books: { title: string; dueDate: string }[] }> = {};
 
         overdueLendings.forEach((lending) => {
@@ -40,16 +36,14 @@ export const sendOverdueNotifications = async (req: Request, res: Response, next
             });
         });
 
-        // Configure nodemailer transport (using Gmail example)
         const transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
-                user: process.env.EMAIL_USER, // your email
-                pass: process.env.EMAIL_PASS, // your app password
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
             },
         });
 
-        // Send emails
         const sendEmailPromises = Object.values(readerMap).map((reader) => {
             const bookList = reader.books
                 .map((book) => `- ${book.title} (Due: ${book.dueDate})`)
@@ -74,7 +68,8 @@ export const sendOverdueNotifications = async (req: Request, res: Response, next
         next(err);
     }
 };
-// 🔧 Define transporter here since you're not using a shared utility
+
+
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -83,10 +78,9 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-// ✅ Welcome email function added directly here
 export const sendWelcomeEmail = async (to: string, name: string) => {
     const mailOptions = {
-        from: `"Book Club" <${process.env.EMAIL_USER}>`, // Fixed template literal
+        from: `"Book Club" <${process.env.EMAIL_USER}>`,
         to,
         subject: "Welcome to the Book Club 📚",
         html: `<p>Dear ${name},</p>
