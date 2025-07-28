@@ -32,5 +32,5 @@ lendingRouter.put("/:id/return", verifyToken, authorizeRoles("staff", "librarian
 
 // Overdue management endpoint
 lendingRouter.get("/overdue", verifyToken, authorizeRoles("staff", "librarian"), getOverdueLendings);
-lendingRouter.get("/overdue-payments", calculateOverduePayments);
+lendingRouter.get("/overdue-payments", verifyToken, authorizeRoles("staff", "librarian"),calculateOverduePayments);
 export default lendingRouter;
