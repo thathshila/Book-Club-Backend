@@ -24,10 +24,13 @@
 // export const LendingModel = mongoose.model<Lending>("Lending", lendingSchema);
 
 import mongoose, { Schema, Document } from "mongoose";
+import {Book} from "./Book";
+import {Reader} from "./Reader";
 
 export interface Lending extends Document {
-    book: mongoose.Types.ObjectId;
-    reader: mongoose.Types.ObjectId;
+    _id: string;
+    book: mongoose.Types.ObjectId | Book;
+    reader: mongoose.Types.ObjectId | Reader;
     borrowDate: Date;
     dueDate: Date;
     returnDate?: Date;
